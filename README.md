@@ -1,1 +1,1 @@
-# redisenterprise-and-vault
+# redis-enterprise-and-vault
