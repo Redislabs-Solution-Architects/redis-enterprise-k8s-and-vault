@@ -1,0 +1,69 @@
+global:
+  tlsDisable: false
+
+injector:
+  logLevel: debug
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+
+server:
+  loglevel: debug
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+
+  extraEnvironmentVars:
+    VAULT_CACERT: /vault/userconfig/vault-server-tls/vault.ca
+
+global:
+  enabled: true
+  tlsDisable: false
+
+server:
+  extraEnvironmentVars:
+    VAULT_CACERT: /vault/userconfig/vault-server-tls/vault.ca
+    VAULT_TLSCERT: /vault/userconfig/vault-server-tls/vault.crt   ## XXX Is this needed?
+    VAULT_TLSKEY: /vault/userconfig/vault-server-tls/vault.key    ## XXX Is this needed?
+
+  extraVolumes:
+    - type: secret
+      name: vault-server-tls    ## Matches secret name created for key and certificates
+
+  # Enables Vault service       XXX Is this needed?
+  service:
+    enabled: true
+
+  standalone:
+    enabled: true
+
+    config: |
+      ui = true
+      listener "tcp" {
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+        tls_cert_file = "/vault/userconfig/vault-server-tls/vault.crt"      ## Note how this is hardcoded 
+        tls_key_file  = "/vault/userconfig/vault-server-tls/vault.key"      ##   /vault/userconfig/SECRETNAME/...
+        tls_client_ca_file = "/vault/userconfig/vault-server-tls/vault.ca"  ##   Must match how secret is populated
+      }
+      storage "file" {
+        path = "/vault/data"
+      }
+      plugin_directory = "/usr/local/libexec/vault"
+
+  volumes:
+    - name: plugins
+      emptyDir: {}
+  volumeMounts:
+    - mountPath: /usr/local/libexec/vault
+      name: plugins
