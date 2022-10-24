@@ -25,16 +25,8 @@ server:
 
   extraEnvironmentVars:
     VAULT_CACERT: /vault/userconfig/vault-server-tls/vault.ca
-
-global:
-  enabled: true
-  tlsDisable: false
-
-server:
-  extraEnvironmentVars:
-    VAULT_CACERT: /vault/userconfig/vault-server-tls/vault.ca
-    VAULT_TLSCERT: /vault/userconfig/vault-server-tls/vault.crt   ## XXX Is this needed?
-    VAULT_TLSKEY: /vault/userconfig/vault-server-tls/vault.key    ## XXX Is this needed?
+    ## NOT NEEDED - VAULT_TLSCERT: /vault/userconfig/vault-server-tls/vault.crt
+    ## NOT NEEDED - VAULT_TLSKEY: /vault/userconfig/vault-server-tls/vault.key 
 
   extraVolumes:
     - type: secret
