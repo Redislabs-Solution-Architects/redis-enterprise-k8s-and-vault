@@ -24,13 +24,11 @@ server:
       cpu: 250m
 
   extraEnvironmentVars:
-    VAULT_CACERT: /vault/userconfig/vault-server-tls/vault.ca
-    ## NOT NEEDED - VAULT_TLSCERT: /vault/userconfig/vault-server-tls/vault.crt
-    ## NOT NEEDED - VAULT_TLSKEY: /vault/userconfig/vault-server-tls/vault.key 
+    VAULT_CACERT: /vault/userconfig/${V_SECRET_NAME}/${CA_CERT}
 
   extraVolumes:
     - type: secret
-      name: vault-server-tls    ## Matches secret name created for key and certificates
+      name: ${V_SECRET_NAME}    ## Matches secret name created for key and certificates
 
   # Enables Vault service       XXX Is this needed?
   service:
@@ -44,9 +42,9 @@ server:
       listener "tcp" {
         address = "[::]:8200"
         cluster_address = "[::]:8201"
-        tls_cert_file = "/vault/userconfig/vault-server-tls/vault.crt"      ## Note how this is hardcoded 
-        tls_key_file  = "/vault/userconfig/vault-server-tls/vault.key"      ##   /vault/userconfig/SECRETNAME/...
-        tls_client_ca_file = "/vault/userconfig/vault-server-tls/vault.ca"  ##   Must match how secret is populated
+        tls_cert_file = "/vault/userconfig/${V_SECRET_NAME}/${V_TLSCERT}"         ## Note how this is hardcoded 
+        tls_key_file  = "/vault/userconfig/${V_SECRET_NAME}/${V_TLSKEY}"          ##   /vault/userconfig/SECRETNAME/...
+        tls_client_ca_file = "/vault/userconfig/${V_SECRET_NAME}/${CA_CERT}"      ##   Must match how secret is populated
       }
       storage "file" {
         path = "/vault/data"
