@@ -18,10 +18,8 @@ openssl genrsa -out ${TMPDIR}/${V_TLSKEY} 2048
 
 ## Sign Certificate Signing Request
 
-XXX capture this and envsubst in gist
-
 ```sh
-envsubst <./csr-template.conf >${TMPDIR}/csr.conf
+envsubst <./csr.template >${TMPDIR}/csr.conf
 
 openssl req -new -key ${TMPDIR}/${V_TLSKEY} \
     -subj "/O=system:nodes/CN=system:node:${V_SERVICE}.${V_NAMESPACE}.svc" \
@@ -33,9 +31,9 @@ openssl req -new -key ${TMPDIR}/${V_TLSKEY} \
 
 ```sh
 export SERVER_CSR="$(cat ${TMPDIR}/server.csr | base64 | tr -d '\r\n')"
-envsubst <./csr-resource-template.yaml >${TMPDIR}/csr.yaml
+envsubst <./csr-resource.template >${TMPDIR}/csr-resource.yaml
 
-kubectl create -f ${TMPDIR}/csr.yaml
+kubectl create -f ${TMPDIR}/csr-resource.yaml
 ```
 
 ## Approve Certificate Request
@@ -60,27 +58,58 @@ kubectl create secret generic ${V_SECRET_NAME} \
 ## Add Vault to Kubernetes Cluster
 
 ```sh
-envsubst <./vault-config-template.yaml >${TMPDIR}/vault-config.yaml
+envsubst <./vault-config.template >${TMPDIR}/vault-config.yaml
 
-helm install -n vault --values ${TMPDIR}/vault-config.yaml vault hashicorp/vault
+helm install -n ${V_NAMESPACE} --values ${TMPDIR}/vault-config.yaml vault hashicorp/vault
 ```
 
 ## Unseal the Vault
 
 ```sh
-kubectl exec -n vault vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json >"${TMPDIR}"/cluster-keys.json
+kubectl exec -n ${V_NAMESPACE} vault-0 -- vault operator init -key-shares=1 -key-threshold=1 -format=json >"${TMPDIR}"/cluster-keys.json
 
-kubectl exec -n vault vault-0 -- vault operator unseal "$(jq -r ".unseal_keys_b64[]" <"${TMPDIR}"/cluster-keys.json)"
+kubectl exec -n ${V_NAMESPACE} vault-0 -- vault operator unseal "$(jq -r ".unseal_keys_b64[]" <"${TMPDIR}"/cluster-keys.json)"
 
-kubectl exec -n vault vault-0 -- vault login "$(jq -r ".root_token" <"${TMPDIR}"/cluster-keys.json)"
+kubectl exec -n ${V_NAMESPACE} vault-0 -- vault login "$(jq -r ".root_token" <"${TMPDIR}"/cluster-keys.json)"
+```
+
+## Configure Vault for Kubernetes Authentication
+
+```sh
+kubectl exec -n ${V_NAMESPACE} -i vault-0 -- sh <./config-vault-kubernetes.sh
 ```
 
 ## Configure Vault for Redis Enterprise
 
 ```sh
-kubectl exec -n vault -it vault-0 -- sh <"${TMPDIR}"/config-vault-kubernetes.sh
+envsubst <./config-vault-redis-enterprise.template >${TMPDIR}/config-vault-redis-enterprise.sh
 
-envsubt <./operator-config-template.yaml >"${TMPDIR}"/operator-config.yaml
+kubectl exec -n ${V_NAMESPACE} -i vault-0 -- sh <"${TMPDIR}"/config-vault-redis-enterprise.sh
+```
 
-kubectl create -f "${TMPDIR}"/operator-config.yaml
+## Configure Operator for Vault
+
+```sh
+envsubst <./operator-environment-config.template >"${TMPDIR}"/operator-environment-config.yaml
+
+kubectl create namespace ${RE_NAMESPACE}
+
+kubectl create -n ${RE_NAMESPACE} -f "${TMPDIR}"/operator-environment-config.yaml
+```
+
+## Install the Redis Enterprise Operator
+
+```sh
+
+kubectl apply -n ${RE_NAMESPACE} -f https://raw.githubusercontent.com/RedisLabs/redis-enterprise-k8s-docs/v6.2.12-1/bundle.yaml
+```
+
+## Add the Admission Controller TLS Identity to Vault
+
+```sh
+kubectl exec -n ${RE_NAMESPACE} -it $(kubectl get pod -l name=redis-enterprise-operator -o jsonpath='{.items[0].metadata.name}') -c redis-enterprise-operator -- /usr/local/bin/generate-tls -infer | tail -4 >${TMPDIR}/admission-identity.json
+
+kubectl cp ${TMPDIR}/admission-identity.json vault-0:/tmp -n ${V_NAMESPACE}
+
+kubectl exec -n ${V_NAMESPACE} -it vault-0 -- vault kv put secret/${REC_NAME}-${RE_NAMESPACE}/admission-tls /tmp/admission-identity.json
 ```

@@ -26,7 +26,7 @@ server:
   extraEnvironmentVars:
     VAULT_CACERT: /vault/userconfig/${V_SECRET_NAME}/${CA_CERT}
 
-  ## Mount Kubernetes Secret hosting the TLS identity for Vault to read. Note 
+  ## Mount Kubernetes Secret hosting the TLS identity for Vault to read. Note
   ## the coordination between the Vault config below and this. Also note
   ## extraVolumes has been deprecated
   # extraVolumes:
@@ -48,10 +48,6 @@ server:
 
     - mountPath: /usr/local/libexec/vault
       name: plugins
-
-  # Enables Vault service       XXX Is this needed?
-  service:
-    enabled: true
 
   standalone:
     enabled: true
