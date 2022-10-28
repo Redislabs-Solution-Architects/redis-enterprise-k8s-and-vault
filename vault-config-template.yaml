@@ -26,9 +26,28 @@ server:
   extraEnvironmentVars:
     VAULT_CACERT: /vault/userconfig/${V_SECRET_NAME}/${CA_CERT}
 
-  extraVolumes:
-    - type: secret
-      name: ${V_SECRET_NAME}    ## Matches secret name created for key and certificates
+  ## Mount Kubernetes Secret hosting the TLS identity for Vault to read. Note 
+  ## the coordination between the Vault config below and this. Also note
+  ## extraVolumes has been deprecated
+  # extraVolumes:
+  #   - type: secret
+  #     name: ${V_SECRET_NAME}
+  volumes:
+    - name: userconfig-vault-server-tls
+      secret:
+        defaultMode: 420
+        secretName: ${V_SECRET_NAME}
+
+    - name: plugins
+      emptyDir: {}
+
+  volumeMounts:
+    - mountPath: /vault/userconfig/${V_SECRET_NAME}
+      name: userconfig-vault-server-tls
+      readOnly: true
+
+    - mountPath: /usr/local/libexec/vault
+      name: plugins
 
   # Enables Vault service       XXX Is this needed?
   service:
@@ -42,18 +61,11 @@ server:
       listener "tcp" {
         address = "[::]:8200"
         cluster_address = "[::]:8201"
-        tls_cert_file = "/vault/userconfig/${V_SECRET_NAME}/${V_TLSCERT}"         ## Note how this is hardcoded 
-        tls_key_file  = "/vault/userconfig/${V_SECRET_NAME}/${V_TLSKEY}"          ##   /vault/userconfig/SECRETNAME/...
-        tls_client_ca_file = "/vault/userconfig/${V_SECRET_NAME}/${CA_CERT}"      ##   Must match how secret is populated
+        tls_cert_file = "/vault/userconfig/${V_SECRET_NAME}/${V_TLSCERT}"
+        tls_key_file  = "/vault/userconfig/${V_SECRET_NAME}/${V_TLSKEY}"
+        tls_client_ca_file = "/vault/userconfig/${V_SECRET_NAME}/${CA_CERT}"
       }
       storage "file" {
         path = "/vault/data"
       }
       plugin_directory = "/usr/local/libexec/vault"
-
-  volumes:
-    - name: plugins
-      emptyDir: {}
-  volumeMounts:
-    - mountPath: /usr/local/libexec/vault
-      name: plugins

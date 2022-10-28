@@ -77,12 +77,10 @@ kubectl exec -n vault vault-0 -- vault login "$(jq -r ".root_token" <"${TMPDIR}"
 
 ## Configure Vault for Redis Enterprise
 
-cat ./config-vault.sh | kubectl exec -n vault -it vault-0 -- sh
-
-##
-
 ```sh
-eval "echo \"$(<./operator-config-template.yaml)\"" 2>/dev/null >${TMPDIR}/operator-config.yaml
+kubectl exec -n vault -it vault-0 -- sh <"${TMPDIR}"/config-vault-kubernetes.sh
 
-kubectl create -f ${TMPDIR}/operator-config.yaml
+envsubt <./operator-config-template.yaml >"${TMPDIR}"/operator-config.yaml
+
+kubectl create -f "${TMPDIR}"/operator-config.yaml
 ```
