@@ -7,7 +7,7 @@ spec:
   uiServiceType: LoadBalancer         # No tunneling to the UI needed
   redisEnterpriseNodeResources:
     limits:
-      cpu: 4                          # Assumes at least 6 cores
+      cpu: 4                          # Assumes at least 6 cores/node
       memory: 4Gi
     requests:
       cpu: 4
@@ -15,6 +15,5 @@ spec:
   clusterCredentialSecretName: rec1
   clusterCredentialSecretType: vault
   clusterCredentialSecretRole: redis-enterprise-rec-redis
-  vaultCASecret: vault-ca-cert
   podAnnotations:
       vault.hashicorp.com/namespace: hashicorp
