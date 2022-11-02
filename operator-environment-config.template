@@ -3,9 +3,9 @@ kind: ConfigMap
 metadata:
    name: operator-environment-config
 data:
-   CREDENTIAL_TYPE: "vault"
+   CREDENTIAL_TYPE: vault
    VAULT_SERVER_FQDN: "${V_SERVICE}.${V_NAMESPACE}"
    VAULT_SERVICE_PORT_HTTPS: "8200"
-   VAULT_SECRET_ROOT: "secret"
-   VAULT_SECRET_PREFIX: "${REC_NAME}-${RE_NAMESPACE}"   
+   VAULT_SECRET_ROOT: secret
+   VAULT_SECRET_PREFIX: "${V_SECRET_PREFIX}"   
    VAULT_ROLE: "redis-enterprise-operator-${RE_NAMESPACE}"

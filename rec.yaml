@@ -1,0 +1,20 @@
+apiVersion: app.redislabs.com/v1
+kind: RedisEnterpriseCluster
+metadata:
+  name: rec1
+spec:
+  nodes: 3
+  uiServiceType: LoadBalancer         # No tunneling to the UI needed
+  redisEnterpriseNodeResources:
+    limits:
+      cpu: 4                          # Assumes at least 6 cores
+      memory: 4Gi
+    requests:
+      cpu: 4
+      memory: 4Gi
+  clusterCredentialSecretName: rec1
+  clusterCredentialSecretType: vault
+  clusterCredentialSecretRole: redis-enterprise-rec-redis
+  vaultCASecret: vault-ca-cert
+  podAnnotations:
+      vault.hashicorp.com/namespace: hashicorp

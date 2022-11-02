@@ -4,6 +4,14 @@ https://cogarius.medium.com/a-vault-for-all-your-secrets-full-tls-on-kubernetes-
 
 https://developer.hashicorp.com/vault/docs/platform/k8s/helm/examples/standalone-tls
 
+## Prerequisets
+
+* Kubernetes cluster with at least 3 nodes, 8GB RAM
+* kubectl
+* jq
+* openssl
+* base64
+
 ## Set up Environment
 
 ```sh
@@ -27,18 +35,14 @@ openssl req -new -key ${TMPDIR}/${V_TLSKEY} \
     -config ${TMPDIR}/csr.conf
 ```
 
-## Request Certificate
+## Request and Approve Certificate
 
 ```sh
 export SERVER_CSR="$(cat ${TMPDIR}/server.csr | base64 | tr -d '\r\n')"
 envsubst <./csr-resource.template >${TMPDIR}/csr-resource.yaml
 
 kubectl create -f ${TMPDIR}/csr-resource.yaml
-```
-
-## Approve Certificate Request
-
-```sh
+## Wait for request to be created
 kubectl certificate approve ${V_CSR_NAME}
 ```
 
@@ -87,7 +91,7 @@ envsubst <./config-vault-redis-enterprise.template >${TMPDIR}/config-vault-redis
 kubectl exec -n ${V_NAMESPACE} -i vault-0 -- sh <"${TMPDIR}"/config-vault-redis-enterprise.sh
 ```
 
-## Configure Operator for Vault
+## Configure Operator for Vault via a ConfigMap
 
 ```sh
 envsubst <./operator-environment-config.template >"${TMPDIR}"/operator-environment-config.yaml
@@ -101,15 +105,29 @@ kubectl create -n ${RE_NAMESPACE} -f "${TMPDIR}"/operator-environment-config.yam
 
 ```sh
 
-kubectl apply -n ${RE_NAMESPACE} -f https://raw.githubusercontent.com/RedisLabs/redis-enterprise-k8s-docs/v6.2.12-1/bundle.yaml
+version=$(curl -s "https://api.github.com/repos/RedisLabs/redis-enterprise-k8s-docs/releases/latest" | jq -r '.name')
+kubectl apply -n ${RE_NAMESPACE} -f https://raw.githubusercontent.com/RedisLabs/redis-enterprise-k8s-docs/v${version}/bundle.yaml
 ```
 
-## Add the Admission Controller TLS Identity to Vault
+<!-- ## Add the Admission Controller TLS Identity to Vault      SKIPPING THIS STEP RIGHT NOW
 
 ```sh
 kubectl exec -n ${RE_NAMESPACE} -it $(kubectl get pod -l name=redis-enterprise-operator -o jsonpath='{.items[0].metadata.name}') -c redis-enterprise-operator -- /usr/local/bin/generate-tls -infer | tail -4 >${TMPDIR}/admission-identity.json
 
 kubectl cp ${TMPDIR}/admission-identity.json vault-0:/tmp -n ${V_NAMESPACE}
 
-kubectl exec -n ${V_NAMESPACE} -it vault-0 -- vault kv put secret/${REC_NAME}-${RE_NAMESPACE}/admission-tls /tmp/admission-identity.json
+kubectl exec -n ${V_NAMESPACE} -it vault-0 -- vault kv put secret/${V_SECRET_PREFIX}/admission-tls /tmp/admission-identity.json 
 ```
+
+-->
+
+
+kubectl create secret generic vault-ca-cert --namespace $RE_NAMESPACE --from-file=vault.ca=${TMPDIR}/${CA_CERT}
+
+kubectl exec -n ${V_NAMESPACE} vault-0 -- vault kv put secret/$V_SECRET_PREFIX/$REC_NAME username=demo@demo.com password=$(openssl rand -hex 8)
+
+kubectl exec -n ${V_NAMESPACE} vault-0 -- vault  write auth/kubernetes/role/redis-enterprise-rec-${RE_NAMESPACE} \
+       bound_service_account_names=${REC_NAME}  \
+       bound_service_account_namespaces=${RE_NAMESPACE} \
+       policies=${V_SECRET_PREFIX}
+

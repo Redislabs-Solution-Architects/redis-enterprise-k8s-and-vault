@@ -1,19 +1,19 @@
 #!/bin/sh
 
 ## From https://github.com/RedisLabs/redis-enterprise-k8s-docs/tree/master/vault#deploying-the-operator
-vault policy write ${REC_NAME}-${RE_NAMESPACE} - <<EOF
-path "secret/data/${REC_NAME}-${RE_NAMESPACE}/*" {
+vault policy write "${V_SECRET_PREFIX}" - <<EOF
+path "secret/data/"${V_SECRET_PREFIX}"/*" {
   capabilities = ["create", "read", "update", "delete", "list"]
 }
-path "secret/metadata/${REC_NAME}-${RE_NAMESPACE}/*" {
+path "secret/metadata/"${V_SECRET_PREFIX}"/*" {
   capabilities = ["list"]
 }
 EOF
 
 vault write auth/kubernetes/role/"redis-enterprise-operator-${RE_NAMESPACE}" \
         bound_service_account_names="redis-enterprise-operator"  \
-        bound_service_account_namespaces=${RE_NAMESPACE} \
-        policies=${REC_NAME}-${RE_NAMESPACE} \
+        bound_service_account_namespaces="${RE_NAMESPACE}" \
+        policies="${V_SECRET_PREFIX}" \
         ttl=24h
 
 ## https://stackoverflow.com/questions/54312213/hashicorp-vault-cli-return-403-when-trying-to-use-kv
