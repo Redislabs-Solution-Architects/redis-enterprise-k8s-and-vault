@@ -2,7 +2,7 @@
 apiVersion: certificates.k8s.io/v1
 kind: CertificateSigningRequest
 metadata:
-  name: ${V_CSR_NAME}
+  name: ${CSR_NAME}
 spec:
   groups:
   - system:authenticated

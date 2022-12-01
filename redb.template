@@ -1,0 +1,11 @@
+---
+    apiVersion: app.redislabs.com/v1
+    kind: RedisEnterpriseDatabase
+    metadata:
+      name: ${REDB-NAME}
+    spec:
+      memorySize: 1G
+      shardCount: 2
+      replication: true
+      tlsMode: enabled
+    

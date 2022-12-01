@@ -2,7 +2,7 @@
 
 ## Source this file to set these environment variables
 
-## From https://developer.hashicorp.com/vault/docs/platform/k8s/helm/examples/standalone-tls
+## See also https://developer.hashicorp.com/vault/docs/platform/k8s/helm/examples/standalone-tls
 
 # TMPDIR for working files.
 export TMPDIR=/tmp
@@ -19,24 +19,38 @@ export V_SERVICE=vault
 # referenced by the Vault config.
 export V_SECRET_NAME=vault-server-tls
 
-# V_CSR_NAME is the name of our certificate signing request as seen by
+# V_CSR_NAME is the name of our Vault certificate signing request as seen by
 # Kubernetes.
 export V_CSR_NAME=vault-csr
 
-# Filenames of Vault private key, Vault certificate, and CA certificate,
-# respectively.
+# REC_CSR_NAME is the name of our Redis Enterprise Cluster (REC) certificate
+# signing request as seen by Kubernetes.
+export REC_CSR_NAME=rec-csr
+
+# Filenames of Vault private key, Vault certificate, REC Proxy private key, REC
+# Proxy certificate, and CA certificate (in this case the Kubernetes root CA), respectively.
 export V_TLSKEY=vault-key.pem
 export V_TLSCERT=vault-cert.pem
+
+export PROXY_TLSKEY=rec-key.pem
+export PROXY_TLSCERT=rec-cert.pem
+
 export CA_CERT=ca-cert.pem
 
-# RE_NAMESPACE is the Kubernetes namespace where Redis is running
-export RE_NAMESPACE=redis
+# REC_NAMESPACE is the Kubernetes namespace where the REC is running
+export REC_NAMESPACE=redis
 
-# REC_NAME is the name of the Redis Enterprise cluster
-export REC_NAME=rec1
+# REC_NAME is the name of the Redis Enterprise Cluster (REC)
+export REC_NAME=rec-simple
 
-# V_SECRET_PREFIX is used the Vault policy name as well as a path component for
-# secrets stored in Vault. The RE_NAMESPACE is added to create a unique string
-# when there are multiple RE clusters created. Each RE cluster must be in its
-# own namespace
-export V_SECRET_PREFIX=redisenterprise-${RE_NAMESPACE}
+# REDB_NAME is the name fo the Redis Enterprise Database (REDB)
+export REDB_NAME=redb-simple
+
+# REC_VAULT_ROLE is the name of the Kubernetes Vault role used by the REC
+export REC_VAULT_ROLE=redis-enterprise-rec-${REC_NAMESPACE}
+
+# V_SECRET_PREFIX is used as the Vault policy name as well as a path component
+# for secrets stored in Vault. The REC_NAMESPACE is added to create a unique
+# string when there are multiple RE clusters created. Each RE operator and
+# cluster must be in its own namespace
+export V_SECRET_PREFIX=redisenterprise-${REC_NAMESPACE}

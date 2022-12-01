@@ -8,4 +8,5 @@ data:
    VAULT_SERVICE_PORT_HTTPS: "8200"
    VAULT_SECRET_ROOT: secret
    VAULT_SECRET_PREFIX: "${V_SECRET_PREFIX}"   
-   VAULT_ROLE: "redis-enterprise-operator-${RE_NAMESPACE}"
+   VAULT_ROLE: "redis-enterprise-operator-${REC_NAMESPACE}"
+   VAULT_AUTH_PATH: "kubernetes"
