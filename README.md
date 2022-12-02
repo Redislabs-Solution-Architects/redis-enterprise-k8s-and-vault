@@ -173,7 +173,8 @@ kubectl exec -n ${V_NAMESPACE} vault-0 -- vault  write auth/kubernetes/role/${RE
 ## Create the REC
 
 ```sh
-kubectl create -n ${REC_NAMESPACE} ./rec.yaml
+envsubst <./rec.template >"${TMPDIR}"/rec.yaml
+kubectl create -n ${RE_NAMESPACE} -f ${TMPDIR}/rec.yaml
 ```
 
 👉 It will take a couple of minutes for the REC pods to be created.
@@ -232,15 +233,21 @@ redis-cli -h localhost -p ${REDB_PORT} --tls --cacert ${TMPDIR}/${CA_CERT} --pas
 
 And success!
 
-## Configure the REC to use a Vault managed TLS Identity
+## Configure the REC to use a Vault Managed TLS Identity
 
 The REC will use a self generated TLS identity unless a Vault hosted identity is
-configured. We already have the certificate and private key which needs to be added to Vault. Then we patch the REC to use this identity.
+configured. We already have the certificate and private key which needs to be added to Vault. 
 
 ```sh
 jq --null-input --rawfile certificate ${TMPDIR}/${PROXY_TLSCERT} --rawfile key ${TMPDIR}/${PROXY_TLSKEY} '{"name": "proxy", "certificate": $certificate, "key": $key}' >${TMPDIR}/rec-identity.json
 kubectl cp ${TMPDIR}/rec-identity.json vault-0:/tmp -n ${V_NAMESPACE}
 kubectl exec -n ${V_NAMESPACE} -it vault-0 -- vault kv put secret/${V_SECRET_PREFIX}/proxy-tls @/tmp/rec-identity.json 
+```
+
+Then we patch the REC to use this identity.
+
+```sh
+kubectl patch -n ${RE_NAMESPACE} rec ${REC_NAME}  --type=merge --patch-file ./rec-patch.yaml
 ```
 
 If you need to, set up the port forwarding again as above. Now verify the new identity is being used for the proxy identity.
