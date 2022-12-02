@@ -153,7 +153,7 @@ kubectl exec -n ${V_NAMESPACE} -it vault-0 -- vault kv put secret/${V_SECRET_PRE
 ```
 
 👉 Most likely the Redis Enterprise Operator pod is in a CrashLookBackOff at
-this point while it was waiting for you. If you are impatient like for all the
+this point while it was waiting for you. If you are impatient like me for all the
 changes you made to be observed, delete the operator Pod and let the Deployment
 create it again.
 
