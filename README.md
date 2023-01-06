@@ -273,6 +273,9 @@ You're just getting started...
 
 ## Further Reading
 [Get started with Redis Enterprise Software](https://docs.redis.com/latest/rs/installing-upgrading/get-started-redis-enterprise-software/)
+
 [Deploy Redis Enterprise Software on Kubernetes](https://docs.redis.com/latest/kubernetes/deployment/quick-start/)
+
 [Integrating the Redis Enterprise Operator with Hashicorp Vault](https://github.com/RedisLabs/redis-enterprise-k8s-docs/tree/master/vault)
+
 [Redis Launchpad](https://launchpad.redis.com/)
