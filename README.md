@@ -1,6 +1,6 @@
 # Redis Enterprise and Vault
 
-This is the companion repo for my technical blog about Kubernetes Secrets and
+This is the companion repo for my [technical blog](https://redis.com/blog/kubernetes-secret/) about Kubernetes Secrets and
 why you really want to be using Vault to manage your secrets. What follows is
 intended to be a recipe for a basic setup.
 
@@ -270,3 +270,9 @@ You're just getting started...
 * Replace the other TLS identities used by Redis Enterprise
 * Configure ingress
 * Upgrade Vault to a full HA configuration or HCP Vault
+
+## Further Reading
+[Get started with Redis Enterprise Software](https://docs.redis.com/latest/rs/installing-upgrading/get-started-redis-enterprise-software/)
+[Deploy Redis Enterprise Software on Kubernetes](https://docs.redis.com/latest/kubernetes/deployment/quick-start/)
+[Integrating the Redis Enterprise Operator with Hashicorp Vault](https://github.com/RedisLabs/redis-enterprise-k8s-docs/tree/master/vault)
+[Redis Launchpad](https://launchpad.redis.com/)
